@@ -1,5 +1,6 @@
 package sg.gov.csit.opvamspv.paymentvoucher;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -39,14 +40,9 @@ public class PaymentVoucherController {
         throw new NotImplementedException();
     }
 
-    @PostMapping("/api/v1/PaymentVouchers")
+    @PostMapping(value = "/api/v1/PaymentVouchers", consumes = MediaType.APPLICATION_XML_VALUE)
     public PaymentVoucher createPaymentVoucher(@RequestBody PaymentVoucher paymentVoucher) {
         return paymentVoucherRepository.save(paymentVoucher);
-    }
-
-    @DeleteMapping("/api/v1/PaymentVouchers/{paymentVoucherId}")
-    public void deletePaymentVoucher(@PathVariable Long paymentVoucherId) {
-        paymentVoucherRepository.deleteById(paymentVoucherId);
     }
 
 }
