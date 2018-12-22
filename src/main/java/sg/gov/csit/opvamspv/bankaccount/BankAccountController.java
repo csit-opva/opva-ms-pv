@@ -22,6 +22,11 @@ public class BankAccountController {
         return bankAccountRepository.findAll();
     }
 
+    @PutMapping("/api/v1/BankAccounts/{bankAccountId}")
+    public BankAccount updateBankAccount(@RequestBody BankAccount account) {
+        return bankAccountRepository.save(account);
+    }
+
     @PostMapping("/api/v1/BankAccounts")
     public BankAccount createBankAccount(@RequestBody BankAccount account) {
         return bankAccountRepository.save(account);

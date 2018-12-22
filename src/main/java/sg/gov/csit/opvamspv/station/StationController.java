@@ -6,7 +6,6 @@ import java.util.*;
 
 @RestController
 public class StationController {
-
     private final StationRepository stationRepository;
 
     public StationController(StationRepository stationRepository) {
@@ -21,6 +20,11 @@ public class StationController {
     @GetMapping("/api/v1/Stations")
     public List<Station> getStations() {
         return stationRepository.findAll();
+    }
+
+    @PutMapping("/api/v1/Stations/{stationId}")
+    public Station updateStation(@RequestBody Station station) {
+        return stationRepository.save(station);
     }
 
     @PostMapping("/api/v1/Stations")
