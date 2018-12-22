@@ -1,12 +1,9 @@
 package sg.gov.csit.opvamspv.bankaccount;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import sg.gov.csit.opvamspv.station.Station;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -22,6 +19,7 @@ public class BankAccount {
     private String accountNo;
 
     @NotNull
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JsonIgnore
     private Station station;
 }

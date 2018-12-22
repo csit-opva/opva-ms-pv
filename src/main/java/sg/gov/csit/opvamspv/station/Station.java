@@ -30,10 +30,10 @@ public class Station {
     @NotNull
     private LocalDate validTo;
 
-    // TODO: Review
-    @NotNull
-    @OneToOne(mappedBy = "station")
-    private BankAccount bankAccount;
+//    // TODO: Review
+//    @NotNull
+//    @OneToOne(mappedBy = "station")
+//    private BankAccount bankAccount;
 
 //    @NotNull
 //    @OneToOne(mappedBy = "station")
