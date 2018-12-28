@@ -7,8 +7,8 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-@EntityScan(basePackageClasses = {OpvamspvApplication.class, Jsr310JpaConverters.class})
-@SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
+@EntityScan(basePackageClasses = { OpvamspvApplication.class, Jsr310JpaConverters.class })
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 @EnableJpaAuditing
 public class OpvamspvApplication {
 
