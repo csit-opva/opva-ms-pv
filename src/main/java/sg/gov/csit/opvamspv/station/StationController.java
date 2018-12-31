@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.*;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 import sg.gov.csit.opvamspv.officer.Officer;
 import sg.gov.csit.opvamspv.officer.OfficerRepository;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
@@ -18,9 +17,11 @@ public class StationController {
         this.officerRepository = officerRepository;
     }
 
-    @GetMapping("/api/v1/Stations/{stationId}")
-    public Station getStation(@PathVariable String stationId) {
-        return stationRepository.getOne(stationId);
+    @GetMapping("/api/v1/Stations/{stationCode}")
+    public Station getStation(@PathVariable String stationCode) {
+        return stationRepository
+                .findById(stationCode)
+                .orElseThrow(() -> new ResourceNotFoundException("not found"));
     }
 
     @GetMapping("/api/v1/Stations")
@@ -60,9 +61,12 @@ public class StationController {
         }).orElseThrow(() -> new ResourceNotFoundException("not found"));
     }
 
-    @DeleteMapping("/api/v1/Stations/{stationId}/Checking/{officerId}")
-    public String unassignCheckingOfficer(@PathVariable String stationId, @PathVariable Long officerId) {
-        throw new NotImplementedException();
+    @DeleteMapping("/api/v1/Stations/{stationId}/Checking")
+    public Station unassignCheckingOfficer(@PathVariable String stationId) {
+        return stationRepository.findById(stationId).map(s -> {
+            s.setCheckingOfficer(null);
+            return stationRepository.save(s);
+        }).orElseThrow(() -> new ResourceNotFoundException("not found"));
     }
 
     @PutMapping("/api/v1/Stations/{stationId}/Approving/{officerId}")
@@ -77,9 +81,12 @@ public class StationController {
         }).orElseThrow(() -> new ResourceNotFoundException("not found"));
     }
 
-    @DeleteMapping("/api/v1/Stations/{stationId}/Approving/{officerId}")
-    public String unassignApprovingfficer(@PathVariable String stationId, @PathVariable Long officerId) {
-        throw new NotImplementedException();
+    @DeleteMapping("/api/v1/Stations/{stationId}/Approving")
+    public Station unassignApprovingfficer(@PathVariable String stationId) {
+        return stationRepository.findById(stationId).map(s -> {
+            s.setApprovingOfficer(null);
+            return stationRepository.save(s);
+        }).orElseThrow(() -> new ResourceNotFoundException("not found"));
     }
 
 }
