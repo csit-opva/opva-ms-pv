@@ -50,7 +50,7 @@ public class StationController {
     }
 
     @PutMapping("/api/v1/Stations/{stationId}/Checking/{officerId}")
-    public Station assignCheckingOfficer(@PathVariable String stationId, @PathVariable Long officerId) {
+    public Station assignCheckingOfficer(@PathVariable String stationId, @PathVariable String officerId) {
         Officer officer = officerRepository
                 .findById(officerId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
@@ -70,7 +70,7 @@ public class StationController {
     }
 
     @PutMapping("/api/v1/Stations/{stationId}/Approving/{officerId}")
-    public Station assignApprovingOfficer(@PathVariable String stationId, @PathVariable Long officerId) {
+    public Station assignApprovingOfficer(@PathVariable String stationId, @PathVariable String officerId) {
         Officer officer = officerRepository
                 .findById(officerId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));

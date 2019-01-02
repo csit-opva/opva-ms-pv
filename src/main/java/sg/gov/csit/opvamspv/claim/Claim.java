@@ -1,9 +1,6 @@
 package sg.gov.csit.opvamspv.claim;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
 @Entity
@@ -13,6 +10,7 @@ public class Claim {
     private Long id;
 
     @NotBlank
+    @Column(unique = true) // Not specified as business requirement, but makes sense really
     private String claimDesc;
 
     public Long getId() {

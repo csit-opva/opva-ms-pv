@@ -3,9 +3,9 @@ package sg.gov.csit.opvamspv.paymentvoucher;
 import sg.gov.csit.opvamspv.station.Station;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.sql.Date;
 
 @Entity
@@ -44,13 +44,11 @@ public class PaymentVoucher {
     private String currency;
 
     @NotNull
-    private double totalTaxForeign;
+    private BigDecimal totalTaxForeign;
 
-    @NotNull
-    private double totalAmountWithGst;
+    private BigDecimal totalAmountWithGst;
 
-    @NotNull
-    private double withholdTaxBaseAmt;
+    private BigDecimal withholdTaxBaseAmt;
 
     @NotNull
     @Size(max = 1) // Why this is a length 1 String? Can we use char instead? Or is it some constant?
@@ -72,9 +70,7 @@ public class PaymentVoucher {
     @Size(max = 4)
     private String companyCode;
 
-    @NotNull
-    @Max(999999999)
-    private double rate;
+    private BigDecimal rate;
 
     @NotNull
     @Size(max = 2)
@@ -151,27 +147,27 @@ public class PaymentVoucher {
         this.currency = currency;
     }
 
-    public double getTotalTaxForeign() {
+    public BigDecimal getTotalTaxForeign() {
         return totalTaxForeign;
     }
 
-    public void setTotalTaxForeign(double totalTaxForeign) {
+    public void setTotalTaxForeign(BigDecimal totalTaxForeign) {
         this.totalTaxForeign = totalTaxForeign;
     }
 
-    public double getTotalAmountWithGst() {
+    public BigDecimal getTotalAmountWithGst() {
         return totalAmountWithGst;
     }
 
-    public void setTotalAmountWithGst(double totalAmountWithGst) {
+    public void setTotalAmountWithGst(BigDecimal totalAmountWithGst) {
         this.totalAmountWithGst = totalAmountWithGst;
     }
 
-    public double getWithholdTaxBaseAmt() {
+    public BigDecimal getWithholdTaxBaseAmt() {
         return withholdTaxBaseAmt;
     }
 
-    public void setWithholdTaxBaseAmt(double withholdTaxBaseAmt) {
+    public void setWithholdTaxBaseAmt(BigDecimal withholdTaxBaseAmt) {
         this.withholdTaxBaseAmt = withholdTaxBaseAmt;
     }
 
@@ -215,11 +211,11 @@ public class PaymentVoucher {
         this.companyCode = companyCode;
     }
 
-    public double getRate() {
+    public BigDecimal getRate() {
         return rate;
     }
 
-    public void setRate(double rate) {
+    public void setRate(BigDecimal rate) {
         this.rate = rate;
     }
 

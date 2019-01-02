@@ -13,7 +13,7 @@ public class OfficerController {
     }
 
     @GetMapping("/api/v1/Officers/{officerId}")
-    public Officer getOfficer(@PathVariable Long officerId) {
+    public Officer getOfficer(@PathVariable String officerId) {
         return officerRepository.getOne(officerId);
     }
 
@@ -27,18 +27,13 @@ public class OfficerController {
         return officerRepository.save(officer);
     }
 
-    // @PostMapping("/api/v1/Officers")
-    // public Officer createOfficer(@RequestBody Officer officer) {
-    // return officerRepository.save(officer);
-    // }
-
     @PostMapping("/api/v1/Officers")
     public List<Officer> createOfficers(@RequestBody List<Officer> officers) {
         return officerRepository.saveAll(officers);
     }
 
     @DeleteMapping("/api/v1/Officers/{officerId}")
-    public void deleteOfficer(@PathVariable Long officerId) {
+    public void deleteOfficer(@PathVariable String officerId) {
         officerRepository.deleteById(officerId);
     }
 

@@ -2,6 +2,7 @@ package sg.gov.csit.opvamspv.station;
 
 import org.hibernate.validator.constraints.Length;
 import sg.gov.csit.opvamspv.officer.Officer;
+import sg.gov.csit.opvamspv.officer.SupportingOfficer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -27,7 +28,7 @@ public class Station {
     private Officer checkingOfficer;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private Set<Officer> supportingOfficers;
+    private Set<SupportingOfficer> supportingOfficers;
 
     @OneToOne(fetch = FetchType.LAZY)
     private Officer approvingOfficer;
@@ -72,11 +73,11 @@ public class Station {
         this.checkingOfficer = checkingOfficer;
     }
 
-    public Set<Officer> getSupportingOfficers() {
+    public Set<SupportingOfficer> getSupportingOfficers() {
         return supportingOfficers;
     }
 
-    public void setSupportingOfficers(Set<Officer> supportingOfficers) {
+    public void setSupportingOfficers(Set<SupportingOfficer> supportingOfficers) {
         this.supportingOfficers = supportingOfficers;
     }
 

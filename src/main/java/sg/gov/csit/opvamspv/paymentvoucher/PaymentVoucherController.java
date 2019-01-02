@@ -38,7 +38,7 @@ public class PaymentVoucherController {
         String stationCode = parsePvHeader(ivc.header.pvFormId)[2];
         Station station = stationRepository
                 .findById(stationCode)
-                .orElseThrow(() -> new ResourceNotFoundException("alamak"));
+                .orElseThrow(() -> new ResourceNotFoundException("Station"));
 
         PaymentVoucher pv = extractPaymentVoucher(ivc, station);
 
@@ -95,9 +95,25 @@ public class PaymentVoucherController {
     private PaymentVoucher extractPaymentVoucher(Ivc ivc, Station station) {
         PaymentVoucher paymentVoucher = new PaymentVoucher();
 
-        paymentVoucher.setStation(station);
+//        paymentVoucher.setSapDocNoc(ivc.header.pvFormId);
+//        paymentVoucher.setPvNumber();
+        paymentVoucher.setRequestorName(ivc.basic.requestorName);
+//        paymentVoucher.setPvDate(ivc.basic.pvDate);
+        paymentVoucher.setPayee(ivc.basic.payee);
+//        paymentVoucher.setReceiptNumber(); // receipt belongs to LineItem
+        paymentVoucher.setCurrency(ivc.calculation.currency);
+        paymentVoucher.setTotalTaxForeign(ivc.calculation.totalTax);
+        paymentVoucher.setTotalAmountWithGst(ivc.calculation.totalAmountLocal);
+        paymentVoucher.setWithholdTaxBaseAmt(ivc.calculation.withholdTaxBaseAmt);
+        paymentVoucher.setPaymentMethod(ivc.basic.paymentMethod);
+        paymentVoucher.setHousebank(ivc.basic.housebank);
         paymentVoucher.setDescription(ivc.basic.description);
-        // TODO: Rest of the attributes
+        paymentVoucher.setDescriptionLongText(ivc.basic.mainDescription);
+        paymentVoucher.setCompanyCode(ivc.basic.companyCode);
+        paymentVoucher.setRate(ivc.calculation.currencyRate);
+        paymentVoucher.setTaxCode(ivc.basic.taxCode);
+        paymentVoucher.setStatus(PVStatus.PENDING_CHECK);
+        paymentVoucher.setStation(station); // Link to Station
 
         return paymentVoucher;
     }
@@ -107,8 +123,27 @@ public class PaymentVoucherController {
             LineItem lineItem = new LineItem();
 
             lineItem.setAgencyService(item.agencyCode);
+//            lineItem.setPrepaymentFrom(item.prepaymentPeriodFrom);
+//            lineItem.setPrepaymentTo(item.prepaymentPeriodTo);
+            lineItem.setFundCentre(item.fundCentre);
+            lineItem.setCostCentre(item.costCentre);
+            lineItem.setCountry(item.country);
+            lineItem.setFundNo(item.fundNumber);
+            lineItem.setFixedAssetIndicator(item.fixedAssetIndicator);
+            lineItem.setTransactionType(item.transactionType);
+            lineItem.setGlAccount(item.glAccount);
+            lineItem.setFixedAssetNumber(item.fixedAssetNo);
+            lineItem.setFixedAssetQty(item.unitsOfFixedAsset);
+            lineItem.setReceiptNo(item.receiptNo);
+//            lineItem.setAmount(item.amountNoTax);
+//            lineItem.setExtraChargesSgd(item.extraCharges);
+//            lineItem.setGst(item);
+            lineItem.setTaxCode(item.taxCode);
+            lineItem.setAmountWithGst(item.amountWithTax);
+            lineItem.setAssignmentNumber(item.assignment);
+            lineItem.setProject(item.project);
+            lineItem.setDetailDescription(item.desc);
             lineItem.setPaymentVoucher(pv); // Link to PV
-            // TODO: Rest of the attributes
 
             return lineItem;
         }).collect(Collectors.toList());
