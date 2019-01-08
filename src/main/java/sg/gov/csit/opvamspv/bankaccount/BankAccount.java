@@ -18,8 +18,8 @@ public class BankAccount {
     @NotNull
     private String accountNo;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne
+//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonIgnore
     private Station station;
 

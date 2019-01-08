@@ -6,7 +6,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.sql.Date;
 
 @Entity
 public class PaymentVoucher {
@@ -20,7 +19,7 @@ public class PaymentVoucher {
     @NotNull
     // Size rather than Length is used because Length is hibernate specific:
     // https://stackoverflow.com/questions/34588354/difference-between-size-length-and-columnlength-value-when-using-jpa-and-h
-    @Size(min = 16, max = 16)
+//    @Size(min = 16, max = 16)
     private String pvNumber;
 
     // Need some length constraints
@@ -29,7 +28,7 @@ public class PaymentVoucher {
     private String requestorName;
 
     @NotNull
-    private Date pvDate;
+    private String pvDate;
 
     @NotNull
     @Size(max = 16)
@@ -37,7 +36,7 @@ public class PaymentVoucher {
 
     @NotNull
     @Size(max = 16)
-    private String receiptNumber;
+    private String referenceNumber;
 
     @NotNull
     @Size(max = 5)
@@ -115,11 +114,11 @@ public class PaymentVoucher {
         this.requestorName = requestorName;
     }
 
-    public Date getPvDate() {
+    public String getPvDate() {
         return pvDate;
     }
 
-    public void setPvDate(Date pvDate) {
+    public void setPvDate(String pvDate) {
         this.pvDate = pvDate;
     }
 
@@ -131,12 +130,12 @@ public class PaymentVoucher {
         this.payee = payee;
     }
 
-    public String getReceiptNumber() {
-        return receiptNumber;
+    public String getReferenceNumber() {
+        return referenceNumber;
     }
 
-    public void setReceiptNumber(String receiptNumber) {
-        this.receiptNumber = receiptNumber;
+    public void setReferenceNumber(String referenceNumber) {
+        this.referenceNumber = referenceNumber;
     }
 
     public String getCurrency() {

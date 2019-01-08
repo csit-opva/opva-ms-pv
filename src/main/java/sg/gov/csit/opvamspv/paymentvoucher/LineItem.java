@@ -6,7 +6,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.sql.Date;
 
 @Entity
 public class LineItem {
@@ -21,17 +20,17 @@ public class LineItem {
     private String agencyService;
 
     @NotNull
-    private Date prepaymentFrom;
+    private String prepaymentFrom;
 
     @NotNull
-    private Date prepaymentTo;
+    private String prepaymentTo;
 
     @NotNull
-    @Size(min = 10, max = 10)
+//    @Size(min = 10, max = 10)
     private String fundCentre;
 
     @NotNull
-    @Size(min = 10, max = 10)
+//    @Size(min = 10, max = 10)
     private String costCentre;
 
     @NotNull
@@ -62,13 +61,11 @@ public class LineItem {
     private String receiptNo;
 
     @NotNull
-    private Date receiptDate;
+    private String receiptDate;
 
     private BigDecimal amount;
 
     private BigDecimal extraChargesSgd;
-
-    private double gst;
 
     @NotNull
     @Size(max = 2)
@@ -118,19 +115,19 @@ public class LineItem {
         this.agencyService = agencyService;
     }
 
-    public Date getPrepaymentFrom() {
+    public String getPrepaymentFrom() {
         return prepaymentFrom;
     }
 
-    public void setPrepaymentFrom(Date prepaymentFrom) {
+    public void setPrepaymentFrom(String prepaymentFrom) {
         this.prepaymentFrom = prepaymentFrom;
     }
 
-    public Date getPrepaymentTo() {
+    public String getPrepaymentTo() {
         return prepaymentTo;
     }
 
-    public void setPrepaymentTo(Date prepaymentTo) {
+    public void setPrepaymentTo(String prepaymentTo) {
         this.prepaymentTo = prepaymentTo;
     }
 
@@ -214,11 +211,11 @@ public class LineItem {
         this.receiptNo = receiptNo;
     }
 
-    public Date getReceiptDate() {
+    public String getReceiptDate() {
         return receiptDate;
     }
 
-    public void setReceiptDate(Date receiptDate) {
+    public void setReceiptDate(String receiptDate) {
         this.receiptDate = receiptDate;
     }
 
@@ -236,14 +233,6 @@ public class LineItem {
 
     public void setExtraChargesSgd(BigDecimal extraChargesSgd) {
         this.extraChargesSgd = extraChargesSgd;
-    }
-
-    public double getGst() {
-        return gst;
-    }
-
-    public void setGst(double gst) {
-        this.gst = gst;
     }
 
     public String getTaxCode() {
