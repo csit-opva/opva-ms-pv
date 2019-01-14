@@ -28,6 +28,21 @@ public class PaymentVoucherController {
         this.lineItemRepository = lineItemRepository;
     }
 
+    @GetMapping("/api/v1/Checking/PaymentVouchers")
+    public List<PaymentVoucher> getCheckingPaymentVouchers(@RequestAttribute String pfNo) {
+        return paymentVoucherRepository.findCheckingPaymentVouchers(pfNo);
+    }
+
+    @GetMapping("/api/v1/Approving/PaymentVouchers")
+    public List<PaymentVoucher> getApprovingPaymentVouchers(@RequestAttribute String pfNo) {
+        return paymentVoucherRepository.findApprovingPaymentVouchers(pfNo);
+    }
+
+    @GetMapping("/api/v1/Supporting/PaymentVouchers")
+    public List<PaymentVoucher> getSupportingPaymentVouchers(@RequestAttribute String pfNo) {
+        return paymentVoucherRepository.findSupportingPaymentVouchers(pfNo);
+    }
+
     @GetMapping("/api/v1/PaymentVouchers/{paymentVoucherId}")
     public PaymentVoucher getPaymentVoucher(@PathVariable Long paymentVoucherId) {
         return paymentVoucherRepository.getOne(paymentVoucherId);
