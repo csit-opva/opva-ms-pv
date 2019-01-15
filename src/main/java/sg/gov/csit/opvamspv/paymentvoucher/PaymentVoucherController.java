@@ -1,12 +1,17 @@
 package sg.gov.csit.opvamspv.paymentvoucher;
 
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 import sg.gov.csit.opvamspv.station.Station;
 import sg.gov.csit.opvamspv.station.StationRepository;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.xml.bind.JAXB;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +28,21 @@ public class PaymentVoucherController {
         this.lineItemRepository = lineItemRepository;
     }
 
+    @GetMapping("/api/v1/Checking/PaymentVouchers")
+    public List<PaymentVoucher> getCheckingPaymentVouchers(@RequestAttribute String pfNo) {
+        return paymentVoucherRepository.findCheckingPaymentVouchers(pfNo);
+    }
+
+    @GetMapping("/api/v1/Approving/PaymentVouchers")
+    public List<PaymentVoucher> getApprovingPaymentVouchers(@RequestAttribute String pfNo) {
+        return paymentVoucherRepository.findApprovingPaymentVouchers(pfNo);
+    }
+
+    @GetMapping("/api/v1/Supporting/PaymentVouchers")
+    public List<PaymentVoucher> getSupportingPaymentVouchers(@RequestAttribute String pfNo) {
+        return paymentVoucherRepository.findSupportingPaymentVouchers(pfNo);
+    }
+
     @GetMapping("/api/v1/PaymentVouchers/{paymentVoucherId}")
     public PaymentVoucher getPaymentVoucher(@PathVariable Long paymentVoucherId) {
         return paymentVoucherRepository.getOne(paymentVoucherId);
@@ -33,19 +53,44 @@ public class PaymentVoucherController {
         return paymentVoucherRepository.findAll();
     }
 
-    @PostMapping(value = "/api/v1/PaymentVouchers", consumes = MediaType.APPLICATION_XML_VALUE)
-    public PaymentVoucher createPaymentVoucher(@RequestBody Ivc ivc) {
-        String stationCode = parsePvHeader(ivc.header.pvFormId)[2];
+    @PostMapping(value = "/api/v1/PaymentVouchers")
+    public PaymentVoucher createPaymentVoucher(
+            @RequestParam("claimForm") MultipartFile claimForm,
+            @RequestParam("sapResult") MultipartFile sapResult,
+            @RequestParam("receipts") MultipartFile[] receipts
+    ) {
+        XmlClaimForm xmlClaimForm = getXmlClaimForm(claimForm);
+        String[] pvHeaders = parsePvHeader(xmlClaimForm.header.pvFormId);
+        String stationCode = pvHeaders[2];
+        String pvFormNo = String.join("", pvHeaders);
+        String docNoStr = "";
+
+        // TODO: Extract to method
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(sapResult.getInputStream()))) {
+            String line;
+            br.readLine(); // Skip headers
+            while ((line = br.readLine()) != null) {
+                String[] tokens = line.split("\t");
+                String formNo = tokens[1]; // the PV Form No. is the second entry
+                if (formNo.equalsIgnoreCase(pvFormNo)) {
+                    docNoStr = tokens[2]; // The Doc. Num is the third entry
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         Station station = stationRepository
                 .findById(stationCode)
-                .orElseThrow(() -> new ResourceNotFoundException("alamak"));
+                .orElseThrow(() -> new ResourceNotFoundException("Station"));
 
-        PaymentVoucher pv = extractPaymentVoucher(ivc, station);
+        PaymentVoucher pv = extractPaymentVoucher(xmlClaimForm, station, pvFormNo, docNoStr);
 
         // TODO: Make this a transaction with the lineItems below, or consider using OneToMany mapping in PV
         paymentVoucherRepository.save(pv);
 
-        List<Ivc.Item> items = ivc.items;
+        List<XmlClaimForm.Item> items = xmlClaimForm.items;
         List<LineItem> lineItems = extractLineItems(items, pv);
         lineItemRepository.saveAll(lineItems);
 
@@ -92,23 +137,72 @@ public class PaymentVoucherController {
         return header.split("-");
     }
 
-    private PaymentVoucher extractPaymentVoucher(Ivc ivc, Station station) {
+    private PaymentVoucher extractPaymentVoucher(XmlClaimForm xmlClaimForm, Station station, String pvNumber, String docNoStr) {
+        long docNo = Long.parseLong(docNoStr);
         PaymentVoucher paymentVoucher = new PaymentVoucher();
 
-        paymentVoucher.setStation(station);
-        paymentVoucher.setDescription(ivc.basic.description);
-        // TODO: Rest of the attributes
+        paymentVoucher.setSapDocNoc(docNo);
+        paymentVoucher.setPvNumber(pvNumber);
+        paymentVoucher.setRequestorName(xmlClaimForm.basic.requestorName);
+        paymentVoucher.setPvDate(xmlClaimForm.basic.pvDate);
+        paymentVoucher.setPayee(xmlClaimForm.basic.payee);
+        paymentVoucher.setReferenceNumber(xmlClaimForm.basic.referenceNumber);
+        paymentVoucher.setCurrency(xmlClaimForm.calculation.currency);
+        paymentVoucher.setTotalTaxForeign(xmlClaimForm.calculation.totalTax);
+        paymentVoucher.setTotalAmountWithGst(xmlClaimForm.calculation.totalAmountLocal);
+        paymentVoucher.setWithholdTaxBaseAmt(xmlClaimForm.calculation.withholdTaxBaseAmt);
+        paymentVoucher.setPaymentMethod(xmlClaimForm.basic.paymentMethod);
+        paymentVoucher.setHousebank(xmlClaimForm.basic.housebank);
+        paymentVoucher.setDescription(xmlClaimForm.basic.description);
+        paymentVoucher.setDescriptionLongText(xmlClaimForm.basic.mainDescription);
+        paymentVoucher.setCompanyCode(xmlClaimForm.basic.companyCode);
+        paymentVoucher.setRate(xmlClaimForm.calculation.currencyRate);
+        paymentVoucher.setTaxCode(xmlClaimForm.basic.taxCode);
+        paymentVoucher.setStatus(PVStatus.PENDING_CHECK);
+        paymentVoucher.setStation(station); // Link to Station
 
         return paymentVoucher;
     }
 
-    private List<LineItem> extractLineItems(List<Ivc.Item> items, PaymentVoucher pv) {
+    private XmlClaimForm getXmlClaimForm(MultipartFile claimForm) {
+        File file = null;
+        try {
+            file = File.createTempFile("something", ".xml");
+            claimForm.transferTo(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        XmlClaimForm xmlClaimForm = JAXB.unmarshal(file, XmlClaimForm.class); // NullPointerException?
+        return xmlClaimForm;
+    }
+
+    private List<LineItem> extractLineItems(List<XmlClaimForm.Item> items, PaymentVoucher pv) {
         return items.stream().map(item -> {
             LineItem lineItem = new LineItem();
 
             lineItem.setAgencyService(item.agencyCode);
+            lineItem.setPrepaymentFrom(item.prepaymentPeriodFrom);
+            lineItem.setPrepaymentTo(item.prepaymentPeriodTo);
+            lineItem.setFundCentre(item.fundCentre);
+            lineItem.setCostCentre(item.costCentre);
+            lineItem.setCountry(item.country);
+            lineItem.setFundNo(item.fundNumber);
+            lineItem.setFixedAssetIndicator(item.fixedAssetIndicator);
+            lineItem.setTransactionType(item.transactionType);
+            lineItem.setGlAccount(item.glAccount);
+            lineItem.setFixedAssetNumber(item.fixedAssetNo);
+            lineItem.setFixedAssetQty(item.unitsOfFixedAsset);
+            lineItem.setReceiptNo(item.receiptNo);
+            lineItem.setReceiptDate(item.receiptDate);
+            lineItem.setAmount(item.amountNoTax);
+            lineItem.setExtraChargesSgd(item.extraCharges);
+            lineItem.setTaxCode(item.taxCode);
+            lineItem.setAmountWithGst(item.amountWithTax);
+            lineItem.setAssignmentNumber(item.assignment);
+            lineItem.setProject(item.project);
+            lineItem.setDetailDescription(item.desc);
             lineItem.setPaymentVoucher(pv); // Link to PV
-            // TODO: Rest of the attributes
 
             return lineItem;
         }).collect(Collectors.toList());

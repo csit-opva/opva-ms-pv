@@ -6,15 +6,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Officer {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    @NotNull
-    @Column(unique = true)
     private String pf;
 
     @NotNull
