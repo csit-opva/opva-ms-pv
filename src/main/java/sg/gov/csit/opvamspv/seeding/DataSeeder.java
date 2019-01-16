@@ -31,14 +31,14 @@ public class DataSeeder {
         this.stationRepository = stationRepository;
     }
 
-//    @EventListener
-//    public void seed(ContextRefreshedEvent event) {
-//        seedOfficers();
-//        seedStations();
-//        seedClaims();
-//        seedBanks();
-//        seedPaymentVouchers();
-//    }
+    @EventListener
+    public void seed(ContextRefreshedEvent event) {
+        seedOfficers();
+        seedStations();
+        seedClaims();
+        seedBanks();
+        seedPaymentVouchers();
+    }
 
     private void seedOfficers() {
         Officer officer = new Officer();

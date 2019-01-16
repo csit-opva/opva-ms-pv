@@ -222,7 +222,7 @@ public class PaymentVoucherController {
             e.printStackTrace();
         }
 
-        return JAXB.unmarshal(file, XmlClaimForm.class);
+        return JAXB.unmarshal(Objects.requireNonNull(file), XmlClaimForm.class);
     }
 
     // TODO: Move out of controller since this is not really controller logic
