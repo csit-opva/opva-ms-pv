@@ -6,6 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 public class LineItem {
@@ -26,11 +27,9 @@ public class LineItem {
     private String prepaymentTo;
 
     @NotNull
-//    @Size(min = 10, max = 10)
     private String fundCentre;
 
     @NotNull
-//    @Size(min = 10, max = 10)
     private String costCentre;
 
     @NotNull
@@ -90,6 +89,9 @@ public class LineItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonIgnore
     private PaymentVoucher paymentVoucher;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private Set<Receipt> receipts;
 
     public Long getId() {
         return id;
@@ -281,5 +283,13 @@ public class LineItem {
 
     public void setPaymentVoucher(PaymentVoucher paymentVoucher) {
         this.paymentVoucher = paymentVoucher;
+    }
+
+    public Set<Receipt> getReceipts() {
+        return receipts;
+    }
+
+    public void setReceipts(Set<Receipt> receipts) {
+        this.receipts = receipts;
     }
 }
