@@ -1,6 +1,9 @@
 package sg.gov.csit.opvamspv.bankaccount;
 
 import org.springframework.web.bind.annotation.*;
+import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
+import sg.gov.csit.opvamspv.station.Station;
+import sg.gov.csit.opvamspv.station.StationRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,9 +11,11 @@ import java.util.stream.Collectors;
 @RestController
 public class BankAccountController {
     private final BankAccountRepository bankAccountRepository;
+    private final StationRepository stationRepository;
 
-    public BankAccountController(BankAccountRepository bankAccountRepository) {
+    public BankAccountController(BankAccountRepository bankAccountRepository, StationRepository stationRepository) {
         this.bankAccountRepository = bankAccountRepository;
+        this.stationRepository = stationRepository;
     }
 
     @GetMapping("/api/v1/BankAccounts/{bankAccountId}")
@@ -28,13 +33,34 @@ public class BankAccountController {
     }
 
     @PutMapping("/api/v1/BankAccounts/{bankAccountId}")
-    public BankAccount updateBankAccount(@RequestBody BankAccount account) {
-        return bankAccountRepository.save(account);
+    public BankAccountDto updateBankAccount(@RequestBody BankAccountDto account) {
+        String stationCode = account.getStationCode();
+        Station station = stationRepository
+                .findById(stationCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Station of " + stationCode + " not found"));
+
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setId(account.getId());
+        bankAccount.setBankName(account.getBankName());
+        bankAccount.setAccountNo(account.getAccountNo());
+        bankAccount.setStation(station);
+
+        return convertToDto(bankAccountRepository.save(bankAccount));
     }
 
     @PostMapping("/api/v1/BankAccounts")
-    public BankAccount createBankAccount(@RequestBody BankAccount account) {
-        return bankAccountRepository.save(account);
+    public BankAccountDto createBankAccount(@RequestBody BankAccountDto account) {
+        String stationCode = account.getStationCode();
+        Station station = stationRepository
+                .findById(stationCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Station of " + stationCode + " not found"));
+
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setBankName(account.getBankName());
+        bankAccount.setAccountNo(account.getAccountNo());
+        bankAccount.setStation(station);
+
+        return convertToDto(bankAccountRepository.save(bankAccount));
     }
 
     @DeleteMapping("/api/v1/BankAccounts/{bankAccountId}")
