@@ -33,8 +33,8 @@ public class BankAccountController {
     }
 
     @DeleteMapping("/api/v1/BankAccounts/{bankAccountId}")
-    public void deleteBankAccount(@PathVariable Long accountId) {
-        bankAccountRepository.deleteById(accountId);
+    public void deleteBankAccount(@PathVariable Long bankAccountId) {
+        bankAccountRepository.deleteById(bankAccountId);
     }
 
 }
