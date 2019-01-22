@@ -15,6 +15,12 @@ public class Officer {
     @NotNull
     private String name;
 
+    @NotNull
+    private boolean isAdmin;
+
+    @NotNull
+    private boolean isAuditor;
+
     public String getPf() {
         return pf;
     }
@@ -29,5 +35,21 @@ public class Officer {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
+    public boolean isAuditor() {
+        return isAuditor;
+    }
+
+    public void setAuditor(boolean auditor) {
+        isAuditor = auditor;
     }
 }

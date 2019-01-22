@@ -1,6 +1,7 @@
 package sg.gov.csit.opvamspv.officer;
 
 import org.springframework.web.bind.annotation.*;
+import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -35,6 +36,42 @@ public class OfficerController {
     @DeleteMapping("/api/v1/Officers/{officerId}")
     public void deleteOfficer(@PathVariable String officerId) {
         officerRepository.deleteById(officerId);
+    }
+
+    @PutMapping("/api/v1/Officers/{officerId}/Admin")
+    public Officer makeAdmin(@PathVariable String officerId) {
+        Officer officer = officerRepository
+                .findById(officerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + officerId + " not found."));
+        officer.setAdmin(true);
+        return officerRepository.save(officer);
+    }
+
+    @DeleteMapping("/api/v1/Officers/{officerId}/Admin")
+    public Officer removeAdminRole(@PathVariable String officerId) {
+        Officer officer = officerRepository
+                .findById(officerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + officerId + " not found."));
+        officer.setAdmin(false);
+        return officerRepository.save(officer);
+    }
+
+    @PutMapping("/api/v1/Officers/{officerId}/Auditor")
+    public Officer makeAuditor(@PathVariable String officerId) {
+        Officer officer = officerRepository
+                .findById(officerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + officerId + " not found."));
+        officer.setAuditor(true);
+        return officerRepository.save(officer);
+    }
+
+    @DeleteMapping("/api/v1/Officers/{officerId}/Auditor")
+    public Officer removeAuditorRole(@PathVariable String officerId) {
+        Officer officer = officerRepository
+                .findById(officerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + officerId + " not found."));
+        officer.setAuditor(false);
+        return officerRepository.save(officer);
     }
 
 }
