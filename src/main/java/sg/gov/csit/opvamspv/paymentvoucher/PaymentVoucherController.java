@@ -3,6 +3,10 @@ package sg.gov.csit.opvamspv.paymentvoucher;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
+import sg.gov.csit.opvamspv.lineitem.LineItem;
+import sg.gov.csit.opvamspv.lineitem.LineItemRepository;
+import sg.gov.csit.opvamspv.receipt.Receipt;
+import sg.gov.csit.opvamspv.receipt.ReceiptRepository;
 import sg.gov.csit.opvamspv.station.Station;
 import sg.gov.csit.opvamspv.station.StationRepository;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -24,11 +28,9 @@ public class PaymentVoucherController {
     private final LineItemRepository lineItemRepository;
     private final ReceiptRepository receiptRepository;
 
-    public PaymentVoucherController(
-            PaymentVoucherRepository paymentVoucherRepository,
-            StationRepository stationRepository,
-            LineItemRepository lineItemRepository,
-            ReceiptRepository receiptRepository) {
+    public PaymentVoucherController(PaymentVoucherRepository paymentVoucherRepository,
+                                    StationRepository stationRepository, LineItemRepository lineItemRepository,
+                                    ReceiptRepository receiptRepository) {
         this.paymentVoucherRepository = paymentVoucherRepository;
         this.stationRepository = stationRepository;
         this.lineItemRepository = lineItemRepository;
@@ -61,35 +63,26 @@ public class PaymentVoucherController {
     }
 
     @PostMapping(value = "/api/v1/PaymentVouchers")
-    public PaymentVoucher createPaymentVoucher(
-            @RequestParam("claimForm") MultipartFile claimForm,
-            @RequestParam("sapResult") MultipartFile sapResult,
-            @RequestParam("receipts") MultipartFile[] receipts,
-            // For future use, when supporting docs comes with a payment voucher
-            @RequestParam(value = "supportingDocs", required = false) MultipartFile[] supportingDocs
-    ) {
+    public PaymentVoucher createPaymentVoucher(@RequestParam("claimForm") MultipartFile claimForm,
+                                               @RequestParam("sapResult") MultipartFile sapResult, @RequestParam("receipts") MultipartFile[] receipts,
+                                               // For future use, when supporting docs comes with a payment voucher
+                                               @RequestParam(value = "supportingDocs", required = false) MultipartFile[] supportingDocs) {
         XmlClaimForm xmlClaimForm = getXmlClaimForm(claimForm);
         PVHeader pvHeader = new PVHeader(xmlClaimForm.header.pvFormId);
         String stationCode = pvHeader.getStationCode();
         String pvFormNo = pvHeader.toString();
         String docNoStr = getDocNoStr(sapResult, pvFormNo);
 
-        Station station = stationRepository
-                .findById(stationCode)
+        Station station = stationRepository.findById(stationCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Station"));
 
         PaymentVoucher pv = extractPaymentVoucher(xmlClaimForm, station, pvFormNo, docNoStr);
 
-        // TODO: Make this a transaction with the lineItems below, or consider using OneToMany mapping in PV
         paymentVoucherRepository.save(pv);
 
         List<XmlClaimForm.Item> items = xmlClaimForm.items;
-        List<LineItem> lineItems = items
-                .stream()
-                .map(itemToLineItem(pv))
-                .collect(Collectors.toList());
-        Arrays.stream(receipts)
-                .forEach(tagReceiptToLineItem(lineItems));
+        List<LineItem> lineItems = items.stream().map(itemToLineItem(pv)).collect(Collectors.toList());
+        Arrays.stream(receipts).forEach(tagReceiptToLineItem(lineItems));
         lineItemRepository.saveAll(lineItems);
 
         return pv;
@@ -108,23 +101,25 @@ public class PaymentVoucherController {
             }
 
             receipt.setReceiptFile(blob);
-            System.out.println(filename);
-            String[] chicken = filename.split("-");
+            String[] lineItemToReceiptNo = filename.split("-");
 
-            Set<Receipt> lineItemReceipts = lineItems.get(Integer.parseInt(chicken[0]) - 1).getReceipts();
-            if (lineItemReceipts == null) {
-                lineItemReceipts = new HashSet<>();
+            int index = Integer.parseInt(lineItemToReceiptNo[0]) - 1;
+            LineItem lineItem = lineItems.get(index);
+
+            Set<Receipt> lineItemReceipts = lineItem.getReceipts();
+            if (lineItem.getReceipts() == null) {
+                lineItem.setReceipts(new HashSet<>());
+                // lineItemReceipts = new HashSet<>();
             }
-            receiptRepository.save(receipt);
-            lineItemReceipts.add(receipt);
+            // receiptRepository.save(receipt);
+            lineItem.getReceipts().add(receipt);
         };
     }
 
     // TODO: When the requirements are confirmed, implement this API
     @PostMapping(value = "/api/v1/PaymentVouchers/{paymentVoucherId}/SupportingDocs")
-    public String uploadSupportingDocs(
-            @PathVariable Long paymentVoucherId,
-            @RequestParam("supportingDocs") MultipartFile[] supportingDocs) {
+    public String uploadSupportingDocs(@PathVariable Long paymentVoucherId,
+                                       @RequestParam("supportingDocs") MultipartFile[] supportingDocs) {
         throw new NotImplementedException();
     }
 
@@ -151,8 +146,7 @@ public class PaymentVoucherController {
 
     @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/check")
     public PaymentVoucher setPVChecked(@PathVariable Long paymentVoucherId) {
-        PaymentVoucher pv = paymentVoucherRepository
-                .findById(paymentVoucherId)
+        PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
 
         pv.setStatus(PVStatus.PENDING_SUPPORTING);
@@ -166,8 +160,7 @@ public class PaymentVoucherController {
 
     @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/approve")
     public PaymentVoucher approvePV(@PathVariable Long paymentVoucherId) {
-        PaymentVoucher pv = paymentVoucherRepository
-                .findById(paymentVoucherId)
+        PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
 
         pv.setStatus(PVStatus.PENDING_PAYMENT);
@@ -176,15 +169,15 @@ public class PaymentVoucherController {
 
     @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/reject")
     public PaymentVoucher rejectPV(@PathVariable Long paymentVoucherId) {
-        PaymentVoucher pv = paymentVoucherRepository
-                .findById(paymentVoucherId)
+        PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
 
         pv.setStatus(PVStatus.REJECTED);
         return paymentVoucherRepository.save(pv);
     }
 
-    private PaymentVoucher extractPaymentVoucher(XmlClaimForm xmlClaimForm, Station station, String pvNumber, String docNoStr) {
+    private PaymentVoucher extractPaymentVoucher(XmlClaimForm xmlClaimForm, Station station, String pvNumber,
+                                                 String docNoStr) {
         long docNo = Long.parseLong(docNoStr);
         PaymentVoucher paymentVoucher = new PaymentVoucher();
 
@@ -227,7 +220,10 @@ public class PaymentVoucherController {
 
     // TODO: Move out of controller since this is not really controller logic
     private List<LineItem> extractLineItems(List<XmlClaimForm.Item> items, PaymentVoucher pv) {
-        return items.stream().map(itemToLineItem(pv)).collect(Collectors.toList());
+        return items
+                .stream()
+                .map(itemToLineItem(pv))
+                .collect(Collectors.toList());
     }
 
     // TODO: Move out of controller since this is not really controller logic
