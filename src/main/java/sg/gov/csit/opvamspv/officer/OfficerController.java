@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.*;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class OfficerController {
@@ -74,4 +75,12 @@ public class OfficerController {
         return officerRepository.save(officer);
     }
 
+    @GetMapping("/api/v1/SystemOfficers")
+    public List<Officer> getSystemOfficers() {
+        return officerRepository
+                .findAll()
+                .stream()
+                .filter(officer -> officer.isAdmin() || officer.isAuditor())
+                .collect(Collectors.toList());
+    }
 }
