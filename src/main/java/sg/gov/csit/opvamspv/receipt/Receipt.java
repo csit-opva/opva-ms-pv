@@ -1,4 +1,4 @@
-package sg.gov.csit.opvamspv.paymentvoucher;
+package sg.gov.csit.opvamspv.receipt;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
