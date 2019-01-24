@@ -1,6 +1,8 @@
-package sg.gov.csit.opvamspv.paymentvoucher;
+package sg.gov.csit.opvamspv.lineitem;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import sg.gov.csit.opvamspv.paymentvoucher.PaymentVoucher;
+import sg.gov.csit.opvamspv.receipt.Receipt;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -90,7 +92,8 @@ public class LineItem {
     @JsonIgnore
     private PaymentVoucher paymentVoucher;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Receipt> receipts;
 
     public Long getId() {
