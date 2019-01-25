@@ -53,8 +53,9 @@ public class PaymentVoucherController {
     }
 
     @GetMapping("/api/v1/PaymentVouchers/{paymentVoucherId}")
-    public PaymentVoucher getPaymentVoucher(@PathVariable Long paymentVoucherId) {
-        return paymentVoucherRepository.getOne(paymentVoucherId);
+    public Optional<PaymentVoucher> getPaymentVoucher(@PathVariable Long paymentVoucherId) {
+        return paymentVoucherRepository.findById(paymentVoucherId);
+//        return paymentVoucherRepository.getOne(paymentVoucherId);
     }
 
     @GetMapping("/api/v1/PaymentVouchers")

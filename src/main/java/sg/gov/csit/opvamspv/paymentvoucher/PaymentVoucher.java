@@ -1,5 +1,6 @@
 package sg.gov.csit.opvamspv.paymentvoucher;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import sg.gov.csit.opvamspv.station.Station;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 
 @Entity
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class PaymentVoucher {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
