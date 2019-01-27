@@ -1,12 +1,14 @@
 package sg.gov.csit.opvamspv.bankaccount;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import sg.gov.csit.opvamspv.station.Station;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -18,8 +20,8 @@ public class BankAccount {
     @NotNull
     private String accountNo;
 
-    @ManyToOne
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+//    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private Station station;
 
