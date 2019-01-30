@@ -227,10 +227,13 @@ public class PaymentVoucherController {
         PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
 
-        // TODO: Implement finance officer checking
-//        if (foo) {
-//            bar;
-//        }
+        Officer officer = officerRepository
+                .findById(pfNo)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + pfNo+ " not found"));
+
+        if (!officer.isFinance()) {
+            throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not a Finance officer.");
+        }
 
         // Validate that this PV is pending approval
         if (pv.getStatus() != PVStatus.PENDING_PAYMENT) {
