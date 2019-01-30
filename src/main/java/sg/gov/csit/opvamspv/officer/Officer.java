@@ -16,13 +16,13 @@ public class Officer {
     private String name;
 
     @NotNull
-    private boolean isAdmin;
+    private boolean isAdmin = false;
 
     @NotNull
-    private boolean isAuditor;
+    private boolean isAuditor = false;
 
     @NotNull
-    private boolean isFinance;
+    private boolean isFinance = false;
 
     public String getPf() {
         return pf;
