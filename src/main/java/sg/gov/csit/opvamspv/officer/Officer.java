@@ -21,6 +21,9 @@ public class Officer {
     @NotNull
     private boolean isAuditor;
 
+    @NotNull
+    private boolean isFinance;
+
     public String getPf() {
         return pf;
     }
@@ -51,5 +54,13 @@ public class Officer {
 
     public void setAuditor(boolean auditor) {
         isAuditor = auditor;
+    }
+
+    public boolean isFinance() {
+        return isFinance;
+    }
+
+    public void setFinance(boolean finance) {
+        isFinance = finance;
     }
 }
