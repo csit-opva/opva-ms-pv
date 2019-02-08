@@ -1,10 +1,17 @@
 package sg.gov.csit.opvamspv.paymentvoucher;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
+import sg.gov.csit.opvamspv.exception.UnauthorizedException;
 import sg.gov.csit.opvamspv.lineitem.LineItem;
 import sg.gov.csit.opvamspv.lineitem.LineItemRepository;
+import sg.gov.csit.opvamspv.officer.Officer;
+import sg.gov.csit.opvamspv.officer.OfficerRepository;
+import sg.gov.csit.opvamspv.officer.SupportingOfficer;
+import sg.gov.csit.opvamspv.officer.SupportingOfficerRepository;
 import sg.gov.csit.opvamspv.receipt.Receipt;
 import sg.gov.csit.opvamspv.receipt.ReceiptRepository;
 import sg.gov.csit.opvamspv.station.Station;
@@ -27,14 +34,18 @@ public class PaymentVoucherController {
     private final StationRepository stationRepository;
     private final LineItemRepository lineItemRepository;
     private final ReceiptRepository receiptRepository;
+    private final OfficerRepository officerRepository;
+    private final PvRejectionRepository pvRejectionRepository;
 
     public PaymentVoucherController(PaymentVoucherRepository paymentVoucherRepository,
                                     StationRepository stationRepository, LineItemRepository lineItemRepository,
-                                    ReceiptRepository receiptRepository) {
+                                    ReceiptRepository receiptRepository, OfficerRepository officerRepository, PvRejectionRepository pvRejectionRepository) {
         this.paymentVoucherRepository = paymentVoucherRepository;
         this.stationRepository = stationRepository;
         this.lineItemRepository = lineItemRepository;
         this.receiptRepository = receiptRepository;
+        this.officerRepository = officerRepository;
+        this.pvRejectionRepository = pvRejectionRepository;
     }
 
     @GetMapping("/api/v1/Checking/PaymentVouchers")
@@ -145,35 +156,134 @@ public class PaymentVoucherController {
     }
 
     @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/check")
-    public PaymentVoucher setPVChecked(@PathVariable Long paymentVoucherId) {
-        PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
+    public PaymentVoucher setPVChecked(@PathVariable Long paymentVoucherId, @RequestAttribute String pfNo) {
+        PaymentVoucher pv = paymentVoucherRepository
+                .findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
+
+        Station station = stationRepository
+                .findById(pv.getStation().getStationCode())
+                .orElseThrow(() -> new ResourceNotFoundException("not found"));
+
+        Officer checkingOfficer = station.getCheckingOfficer();
+
+        String coPfNo = checkingOfficer.getPf();
+
+        if (!coPfNo.equalsIgnoreCase(pfNo)) {
+            throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not the checking officer of this station");
+        }
+
+        if (pv.getStatus() != PVStatus.PENDING_CHECK) {
+            throw new ResourceNotFoundException("Payment Voucher of " + paymentVoucherId + "does not require checking at the moment."); // Needs better error for now
+        }
 
         pv.setStatus(PVStatus.PENDING_SUPPORTING);
         return paymentVoucherRepository.save(pv);
     }
 
     @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/support")
-    public String supportPV(@PathVariable Long paymentVoucherId) {
-        throw new NotImplementedException();
+    public PaymentVoucher supportPV(@PathVariable Long paymentVoucherId, @RequestAttribute String pfNo) {
+        PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
+                .orElseThrow(() -> new ResourceNotFoundException("not found"));
+
+        // Validate that current user supporting is a supporting officer.
+        // Could potentially be simplified with AOP (Aspect oriented programming)
+        List<String> stationSupportingOfficerPvs = pv
+                .getStation()
+                .getSupportingOfficers()
+                .stream()
+                .map(SupportingOfficer::getOfficer)
+                .map(Officer::getPf)
+                .collect(Collectors.toList());
+        if (!stationSupportingOfficerPvs.contains(pfNo)) {
+            throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not the supporting officer of this station");
+        }
+
+        // Validate that this PV is pending supporting
+        if (pv.getStatus() != PVStatus.PENDING_SUPPORTING) {
+            throw new ResourceNotFoundException("Payment Voucher of " + paymentVoucherId + "does not require supporting at the moment."); // Needs better error for now
+        }
+
+        pv.setStatus(PVStatus.PENDING_APPROVAL);
+        return paymentVoucherRepository.save(pv);
     }
 
     @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/approve")
-    public PaymentVoucher approvePV(@PathVariable Long paymentVoucherId) {
+    public PaymentVoucher approvePV(@PathVariable Long paymentVoucherId, @RequestAttribute String pfNo) {
         PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
+
+        if (!pv.getStation().getApprovingOfficer().getPf().equalsIgnoreCase(pfNo)) {
+            throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not the approving officer of this station");
+        }
+
+        // Validate that this PV is pending approval
+        if (pv.getStatus() != PVStatus.PENDING_APPROVAL) {
+            throw new ResourceNotFoundException("Payment Voucher of " + paymentVoucherId + "does not require supporting at the moment."); // Needs better error for now
+        }
 
         pv.setStatus(PVStatus.PENDING_PAYMENT);
         return paymentVoucherRepository.save(pv);
     }
 
-    @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/reject")
-    public PaymentVoucher rejectPV(@PathVariable Long paymentVoucherId) {
+    @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/paid")
+    public PaymentVoucher payPv(@PathVariable Long paymentVoucherId, @RequestAttribute String pfNo) {
         PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
 
+        Officer officer = officerRepository
+                .findById(pfNo)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + pfNo + " not found"));
+
+        if (!officer.isFinance()) {
+            throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not a Finance officer.");
+        }
+
+        // Validate that this PV is pending approval
+        if (pv.getStatus() != PVStatus.PENDING_PAYMENT) {
+            throw new ResourceNotFoundException("Payment Voucher of " + paymentVoucherId + "does not require payment at the moment."); // Needs better error for now
+        }
+
+        pv.setStatus(PVStatus.PAID);
+        throw new NotImplementedException();
+    }
+
+    @PostMapping("/api/v1/PaymentVouchers/{paymentVoucherId}/reject")
+    public ResponseEntity rejectPV(@PathVariable Long paymentVoucherId, @RequestBody String reason, @RequestAttribute String pfNo) {
+        PaymentVoucher pv = paymentVoucherRepository.findById(paymentVoucherId)
+                .orElseThrow(() -> new ResourceNotFoundException("not found"));
+
+        Officer officer = officerRepository
+                .findById(pfNo)
+                .orElseThrow(() -> new ResourceNotFoundException("Officer of " + pfNo + " not found"));
+
+        Station station = pv.getStation();
+
+        // Doesn't allow user to reject PV if they're not authorized to do so
+        // Ugly but working code for now
+        Set<SupportingOfficer> supportingOfficers = station.getSupportingOfficers();
+        List<String> pfNos = new ArrayList<>(supportingOfficers)
+                .stream()
+                .map(SupportingOfficer::getOfficer)
+                .map(Officer::getPf)
+                .collect(Collectors.toList());
+        pfNos.add(station.getApprovingOfficer().getPf());
+        pfNos.add(station.getCheckingOfficer().getPf());
+        if (!pfNos.contains(pfNo) && !officer.isFinance()) {
+            throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not authorized to reject this PV.");
+        }
+
+        PvRejection pvRejection = new PvRejection();
+        pvRejection.setPv(pv);
+        pvRejection.setOfficer(officer);
+        pvRejection.setReason(reason);
+
         pv.setStatus(PVStatus.REJECTED);
-        return paymentVoucherRepository.save(pv);
+        paymentVoucherRepository.save(pv);
+
+        pvRejectionRepository.save(pvRejection);
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     private PaymentVoucher extractPaymentVoucher(XmlClaimForm xmlClaimForm, Station station, String pvNumber,

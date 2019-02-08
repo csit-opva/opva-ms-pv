@@ -45,9 +45,15 @@ public class DataSeeder {
 
         officer.setPf("11011");
         officer.setName("Tan Miam Miam");
+        officer.setAuditor(true); // Miam Miam, you are the most powerful person!
+        officer.setAdmin(true); // Miam Miam, you are the most powerful person!
+        officer.setFinance(true); // Miam Miam, you are the most powerful person!
         officerRepository.save(officer);
         officer.setPf("11012");
         officer.setName("Koh Ee Giam");
+        officer.setAuditor(false);
+        officer.setAdmin(false);
+        officer.setFinance(false);
         officerRepository.save(officer);
         officer.setPf("11013");
         officer.setName("Tan Yang Guo");
