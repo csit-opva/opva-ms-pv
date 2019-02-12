@@ -28,7 +28,7 @@ public class ReceiptController {
             long blobLength = blob.length();
             return blob.getBytes(1, (int) blobLength);
         } catch (SQLException e) {
-            return null;
+            throw new ResourceNotFoundException("Receipt of id: " + id + " does not have a valid receipt file attached :(");
         }
     }
 }

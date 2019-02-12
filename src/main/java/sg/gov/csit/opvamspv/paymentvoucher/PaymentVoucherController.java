@@ -39,7 +39,8 @@ public class PaymentVoucherController {
 
     public PaymentVoucherController(PaymentVoucherRepository paymentVoucherRepository,
                                     StationRepository stationRepository, LineItemRepository lineItemRepository,
-                                    ReceiptRepository receiptRepository, OfficerRepository officerRepository, PvRejectionRepository pvRejectionRepository) {
+                                    ReceiptRepository receiptRepository, OfficerRepository officerRepository,
+                                    PvRejectionRepository pvRejectionRepository) {
         this.paymentVoucherRepository = paymentVoucherRepository;
         this.stationRepository = stationRepository;
         this.lineItemRepository = lineItemRepository;
@@ -76,7 +77,8 @@ public class PaymentVoucherController {
 
     @PostMapping(value = "/api/v1/PaymentVouchers")
     public PaymentVoucher createPaymentVoucher(@RequestParam("claimForm") MultipartFile claimForm,
-                                               @RequestParam("sapResult") MultipartFile sapResult, @RequestParam("receipts") MultipartFile[] receipts,
+                                               @RequestParam("sapResult") MultipartFile sapResult,
+                                               @RequestParam("receipts") MultipartFile[] receipts,
                                                // For future use, when supporting docs comes with a payment voucher
                                                @RequestParam(value = "supportingDocs", required = false) MultipartFile[] supportingDocs) {
         XmlClaimForm xmlClaimForm = getXmlClaimForm(claimForm);
@@ -93,8 +95,13 @@ public class PaymentVoucherController {
         paymentVoucherRepository.save(pv);
 
         List<XmlClaimForm.Item> items = xmlClaimForm.items;
-        List<LineItem> lineItems = items.stream().map(itemToLineItem(pv)).collect(Collectors.toList());
-        Arrays.stream(receipts).forEach(tagReceiptToLineItem(lineItems));
+        List<LineItem> lineItems = items
+                .stream()
+                .map(itemToLineItem(pv))
+                .collect(Collectors.toList());
+        Arrays.stream(receipts)
+                // Properly tag every single receipt to the right line item
+                .forEach(tagReceiptToLineItem(lineItems));
         lineItemRepository.saveAll(lineItems);
 
         return pv;
@@ -102,7 +109,10 @@ public class PaymentVoucherController {
 
     private Consumer<MultipartFile> tagReceiptToLineItem(List<LineItem> lineItems) {
         return receiptFile -> {
+            // Get the filename part e.g. 01-01.pdf, but we only want 01-01
             String filename = Objects.requireNonNull(receiptFile.getOriginalFilename()).split("\\.")[0]; // e.g. 01-01
+
+            // Make the receiptFile ready for seeding inside, so apparently SerialBlob works
             Receipt receipt = new Receipt();
             Blob blob = null;
             try {
@@ -113,15 +123,19 @@ public class PaymentVoucherController {
             }
 
             receipt.setReceiptFile(blob);
+
+            // split into line Item and receipt no
+            // e.g. 01-01 splits into 01, -, 01
+            // we only care about the 01 and 01, which are lineitem and receipt no
             String[] lineItemToReceiptNo = filename.split("-");
 
             int index = Integer.parseInt(lineItemToReceiptNo[0]) - 1;
             LineItem lineItem = lineItems.get(index);
 
-            Set<Receipt> lineItemReceipts = lineItem.getReceipts();
+            // Basically if the line Item didn't have a receipt in the first place, it's null as expected
+            // To get around it, initialize your own Receipts hashset ¯\_(ツ)_/¯
             if (lineItem.getReceipts() == null) {
                 lineItem.setReceipts(new HashSet<>());
-                // lineItemReceipts = new HashSet<>();
             }
             // receiptRepository.save(receipt);
             lineItem.getReceipts().add(receipt);
@@ -166,10 +180,9 @@ public class PaymentVoucherController {
                 .findById(pv.getStation().getStationCode())
                 .orElseThrow(() -> new ResourceNotFoundException("not found"));
 
+        // Check if officer can perform this action
         Officer checkingOfficer = station.getCheckingOfficer();
-
         String coPfNo = checkingOfficer.getPf();
-
         if (!coPfNo.equalsIgnoreCase(pfNo)) {
             throw new UnauthorizedException("Officer of PF number " + pfNo + "  is not the checking officer of this station");
         }
@@ -287,6 +300,7 @@ public class PaymentVoucherController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
+    // TODO: Move out of controller since this is not really controller logic
     private PaymentVoucher extractPaymentVoucher(XmlClaimForm xmlClaimForm, Station station, String pvNumber,
                                                  String docNoStr) {
         long docNo = Long.parseLong(docNoStr);
@@ -320,6 +334,8 @@ public class PaymentVoucherController {
     private XmlClaimForm getXmlClaimForm(MultipartFile claimForm) {
         File file = null;
         try {
+            // create temporary file to hold the xml file cos
+            // JAXB.unmarshal takes in File as first argument, not MultipartFile
             file = File.createTempFile("something", ".xml");
             claimForm.transferTo(file);
         } catch (IOException e) {

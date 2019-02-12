@@ -5,6 +5,8 @@ import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 import sg.gov.csit.opvamspv.station.Station;
 import sg.gov.csit.opvamspv.station.StationRepository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +32,15 @@ public class BankAccountController {
                 .stream()
                 .map(BankAccountController::convertToDto)
                 .collect(Collectors.toList());
+
+//        List<BankAccount> bankAccounts = bankAccountRepository.findAll();
+//        List<BankAccountDto> bankAccountDtos = new ArrayList<>();
+//        for (BankAccount bankAccount : bankAccounts) {
+//            BankAccountDto bankAccountDto = convertToDto(bankAccount);
+//            bankAccountDtos.add(bankAccountDto);
+//        }
+//
+//        return bankAccountDtos;
     }
 
     @PutMapping("/api/v1/BankAccounts/{bankAccountId}")
