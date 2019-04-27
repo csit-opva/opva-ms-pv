@@ -25,6 +25,7 @@ public class BankAccountController {
 
     @GetMapping("/api/v1/BankAccounts")
     public List<BankAccountDto> getBankAccounts() {
+        //TODO: What is :: and why do we need a DTO?
         return bankAccountRepository
                 .findAll()
                 .stream()
