@@ -1,14 +1,23 @@
 package sg.gov.csit.opvamspv.officer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import sg.gov.csit.opvamspv.exception.OfficerNotFoundException;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 public class OfficerController {
     private final OfficerRepository officerRepository;
+    private static final Logger log = LoggerFactory.getLogger(OfficerController.class);
+
 
     public OfficerController(OfficerRepository officerRepository) {
         this.officerRepository = officerRepository;
@@ -16,7 +25,24 @@ public class OfficerController {
 
     @GetMapping("/api/v1/Officers/{officerId}")
     public Officer getOfficer(@PathVariable String officerId) {
-        return officerRepository.getOne(officerId);
+//        try {
+            return officerRepository.findById(officerId).
+                    orElseThrow(() -> new OfficerNotFoundException(officerId));
+//            log.info("Result" + officer);
+
+
+//            if (officer == null) {
+//                throw new ResourceNotFoundException("Who are you looking for?");
+//            } else {
+//
+//                log.info("Result" + officer);
+//
+//                return officer;
+//            }
+
+//        } catch (Exception ex) {
+//            throw new ResourceNotFoundException("Who are you looking for?");
+//        }
     }
 
     @GetMapping("/api/v1/Officers")
@@ -32,6 +58,11 @@ public class OfficerController {
     @PostMapping("/api/v1/Officers")
     public List<Officer> createOfficers(@RequestBody List<Officer> officers) {
         return officerRepository.saveAll(officers);
+    }
+
+    @PostMapping("/api/v1/Officer")
+    public Officer createOfficer(@RequestBody Officer officer) {
+        return officerRepository.save(officer);
     }
 
     @DeleteMapping("/api/v1/Officers/{officerId}")
