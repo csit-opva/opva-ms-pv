@@ -18,17 +18,17 @@ import java.io.IOException;
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
-//    @Override
-//    protected ResponseEntity<Object>
-//    handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders httpHeaders, HttpStatus status, WebRequest request) {
-//        String error = "Malformed JSON request";
-//        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, error, ex));
-//    }
-//
-//    private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
-//        return new ResponseEntity<>(apiError, apiError.getStatus());
-//    }
-//
+    @Override
+    protected ResponseEntity<Object>
+    handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders httpHeaders, HttpStatus status, WebRequest request) {
+        String error = "Malformed JSON request";
+        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, error, ex));
+    }
+
+    private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
+        return new ResponseEntity<>(apiError, apiError.getStatus());
+    }
+
 //    @ExceptionHandler({ResourceNotFoundException.class,OfficerNotFoundException.class})
 //    public void springHandle(HttpServletResponse response) throws Exception {
 //        response.sendError(HttpStatus.NOT_ACCEPTABLE.value());
@@ -39,8 +39,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 //        ApiError error = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(),ex);
 //
 //        return new ResponseEntity<>(error, error.getStatus());
-//
-//
+
+
 //    }
 
 

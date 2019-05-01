@@ -2,17 +2,14 @@ package sg.gov.csit.opvamspv.officer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClientException;
+import sg.gov.csit.opvamspv.accesscontrollist.Acl;
+import sg.gov.csit.opvamspv.accesscontrollist.AllowRoles;
 import sg.gov.csit.opvamspv.exception.OfficerNotFoundException;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @RestController
 public class OfficerController {
     private final OfficerRepository officerRepository;
@@ -23,10 +20,11 @@ public class OfficerController {
         this.officerRepository = officerRepository;
     }
 
+    @AllowRoles()
     @GetMapping("/api/v1/Officers/{officerId}")
     public Officer getOfficer(@PathVariable String officerId) {
 //        try {
-            return officerRepository.findById(officerId).
+              return officerRepository.findById(officerId).
                     orElseThrow(() -> new OfficerNotFoundException(officerId));
 //            log.info("Result" + officer);
 

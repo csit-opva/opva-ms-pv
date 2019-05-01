@@ -9,7 +9,7 @@ import sg.gov.csit.opvamspv.claim.Claim;
 import sg.gov.csit.opvamspv.claim.ClaimRepository;
 import sg.gov.csit.opvamspv.officer.Officer;
 import sg.gov.csit.opvamspv.officer.OfficerRepository;
-import sg.gov.csit.opvamspv.officer.Role;
+import sg.gov.csit.opvamspv.accesscontrollist.Role;
 import sg.gov.csit.opvamspv.paymentvoucher.PaymentVoucherRepository;
 import sg.gov.csit.opvamspv.station.Station;
 import sg.gov.csit.opvamspv.station.StationRepository;

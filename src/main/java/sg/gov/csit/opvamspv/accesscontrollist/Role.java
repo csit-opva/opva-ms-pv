@@ -1,11 +1,12 @@
-package sg.gov.csit.opvamspv.officer;
+package sg.gov.csit.opvamspv.accesscontrollist;
 
 public enum Role {
     Admin("System Admin"),
     AO("Approving Officer"),
     CO("Checking Officer"),
     SO("Supporting Officer"),
-    CSA("Customer Support Assistance");
+    CSA("Customer Support Assistance"),
+    Officer("Engineer");
 
     private String roleDesc;
 

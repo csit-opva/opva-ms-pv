@@ -1,6 +1,7 @@
 package sg.gov.csit.opvamspv.officer;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import sg.gov.csit.opvamspv.accesscontrollist.Role;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

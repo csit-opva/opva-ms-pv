@@ -1,6 +1,5 @@
 package sg.gov.csit.opvamspv;
 
-import org.hibernate.mapping.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -13,10 +12,9 @@ import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import sg.gov.csit.opvamspv.officer.Officer;
 import sg.gov.csit.opvamspv.officer.OfficerRepository;
-import sg.gov.csit.opvamspv.officer.Role;
+import sg.gov.csit.opvamspv.accesscontrollist.Role;
 
 import java.util.List;
-import java.util.Set;
 
 @EntityScan(basePackageClasses = {OpvamspvApplication.class, Jsr310JpaConverters.class})
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
@@ -56,6 +54,17 @@ public class OpvamspvApplication {
                 log.info("Filter: " + r);
                 return true;
             }).forEach(role -> log.info("foreach: " + role.value()));
+
+
+//            Class<OfficerController> obj = OfficerController.class;
+//
+//            for(Method method: obj.getDeclaredMethods()) {
+//
+//                Annotation annotation = method.getAnnotation((AllowRoles.class));
+//                AllowRoles allowRole = (AllowRoles) annotation;
+//
+//                System.out.println("The annotated role is: " + allowRole.role().value());
+//            }
 
         };
     }
