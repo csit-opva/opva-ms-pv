@@ -5,8 +5,7 @@ public enum Role {
     AO("Approving Officer"),
     CO("Checking Officer"),
     SO("Supporting Officer"),
-    CSA("Customer Support Assistance"),
-    Officer("Engineer");
+    CSA("Customer Support Assistance");
 
     private String roleDesc;
 

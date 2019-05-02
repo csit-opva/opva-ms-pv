@@ -8,5 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface AllowRoles {
-    Role[] roles() default {Role.Officer};
+    Role[] roles() default {};
+    String action() default "Unknown Action";
 }

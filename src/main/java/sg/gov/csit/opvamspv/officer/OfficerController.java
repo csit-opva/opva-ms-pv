@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import sg.gov.csit.opvamspv.accesscontrollist.Acl;
 import sg.gov.csit.opvamspv.accesscontrollist.AllowRoles;
+import sg.gov.csit.opvamspv.accesscontrollist.Role;
 import sg.gov.csit.opvamspv.exception.OfficerNotFoundException;
 import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 
@@ -20,10 +21,13 @@ public class OfficerController {
         this.officerRepository = officerRepository;
     }
 
-    @AllowRoles()
+    @AllowRoles(action = "Retrieve Officer", roles={Role.Admin})
     @GetMapping("/api/v1/Officers/{officerId}")
-    public Officer getOfficer(@PathVariable String officerId) {
+    public Officer getOfficer(@PathVariable String officerId, String transactionId, @RequestAttribute("txnId") String txnId) {
 //        try {
+
+                System.out.println("getOfficer txnId: " + txnId);
+
               return officerRepository.findById(officerId).
                     orElseThrow(() -> new OfficerNotFoundException(officerId));
 //            log.info("Result" + officer);
