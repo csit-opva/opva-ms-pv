@@ -1,6 +1,7 @@
 package sg.gov.csit.opvamspv.seeding;
 
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import sg.gov.csit.opvamspv.bankaccount.BankAccount;
@@ -33,7 +34,7 @@ public class DataSeeder {
     }
 
     @EventListener
-    public void seed(ContextRefreshedEvent event) {
+    public void seed(ContextStartedEvent event) {
         seedOfficers();
         seedStations();
         seedClaims();

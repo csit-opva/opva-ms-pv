@@ -13,7 +13,6 @@ public class Officer {
     @Id
     private String pf;
 
-    @NotNull
     private String name;
 
     @NotNull

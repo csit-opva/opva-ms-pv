@@ -11,6 +11,7 @@ import sg.gov.csit.opvamspv.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 @RestController
 public class OfficerController {
     private final OfficerRepository officerRepository;
@@ -21,15 +22,36 @@ public class OfficerController {
         this.officerRepository = officerRepository;
     }
 
-    @AllowRoles(action = "Retrieve Officer", roles={Role.Admin})
-    @GetMapping("/api/v1/Officers/{officerId}")
-    public Officer getOfficer(@PathVariable String officerId, String transactionId, @RequestAttribute("txnId") String txnId) {
+
+    @AllowRoles(action = "Retrieve Officer", roles = {Role.Admin})
+    @GetMapping("/api/v1/Officer/Profile")
+    public OfficerProfileDto getOfficerProfile(@RequestAttribute("pfNo") String officerId, @RequestAttribute("txnId") String txnId) {
 //        try {
 
-                System.out.println("getOfficer txnId: " + txnId);
+        log.info("getOfficer txnId: " + txnId);
+        log.info("requested pfNo: " + officerId);
 
-              return officerRepository.findById(officerId).
-                    orElseThrow(() -> new OfficerNotFoundException(officerId));
+        Officer officer = officerRepository.findById(officerId).
+                orElseThrow(() -> new OfficerNotFoundException(officerId));
+
+        return new OfficerProfileDto(officer);
+//
+    }
+
+    @AllowRoles(action = "Retrieve Officer", roles = {Role.Admin})
+    @GetMapping("/api/v1/Officers/{officerId}")
+    public OfficerProfileDto getOfficer(@PathVariable String officerId, String transactionId, @RequestAttribute("txnId") String txnId) {
+//        try {
+
+        System.out.println("getOfficer txnId: " + txnId);
+
+        Officer officer = officerRepository.findById(officerId).
+                orElseThrow(() -> new OfficerNotFoundException(officerId));
+
+        System.out.println(officer.getName());
+
+        return new OfficerProfileDto(officer);
+
 //            log.info("Result" + officer);
 
 

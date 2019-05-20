@@ -3,6 +3,7 @@ package sg.gov.csit.opvamspv.accesscontrollist;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,8 @@ public class AllowRolesAspect {
 
     private static final Logger log = LoggerFactory.getLogger(AllowRolesAspect.class);
 
-    @Around(value = "@annotation(anno)", argNames = "jp, anno")
-    public Object handle(ProceedingJoinPoint joinPoint, AllowRoles allowRoles) throws Throwable {
+    @Before(value = "@annotation(anno)", argNames = "anno")
+    public void handle(AllowRoles allowRoles) throws Throwable {
 //        Object obj = joinPoint.getThis();
 //
 //        Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
@@ -54,11 +55,10 @@ public class AllowRolesAspect {
                     isAuthorized = true;
             }
 
-            if(isAuthorized) {
-                return joinPoint.proceed();
-            } else {
+            if(!isAuthorized) {
                 throw new UnauthorizeException(allowRoles.action());
             }
+
         } finally {
             log.info(txnId + "Authorization check Ended: for pf: " + pfNo + "performing action: " + allowRoles.action());
         }
